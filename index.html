@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AutoBroc — Le Vinted des pièces auto pour Madagascar</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- Bandeau de confiance -->
+  <div class="trust-banner">
+    🔒 Paiement MVola sécurisé : <strong>l'argent est bloqué jusqu'à réception de votre pièce.</strong>
+  </div>
+
+  <!-- En-tête -->
+  <header class="header">
+    <div class="container header-content">
+      <div class="logo" onclick="switchTab('catalogue')">
+        <span class="logo-icon">🔧</span>
+        <div>
+          <h1>AutoBroc</h1>
+          <p>Le Vinted des pièces auto pour Madagascar</p>
+        </div>
+      </div>
+
+      <nav class="nav-actions">
+        <button class="btn btn-outline" onclick="switchTab('catalogue')">Catalogue</button>
+        <button class="btn btn-outline" onclick="switchTab('commandes')">Mes achats (<span id="ordersCount">0</span>)</button>
+        <button class="btn btn-primary" onclick="openSellModal()">+ Vendre</button>
+        <button class="btn btn-admin" onclick="openAdminPrompt()">Admin</button>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Contenu principal -->
+  <main class="container">
+
+    <!-- VUE 1 : CATALOGUE -->
+    <section id="view-catalogue">
+      <div class="search-bar-card">
+        <input type="text" id="searchInput" placeholder="Ex : Phare Hilux, Pare-choc 206, Alternateur..." oninput="renderListings()" />
+        
+        <select id="cityFilter" onchange="renderListings()">
+          <option value="Toutes">📍 Toutes les villes</option>
+          <option value="Antananarivo">Antananarivo</option>
+          <option value="Mahajanga">Mahajanga</option>
+          <option value="Mandritsara">Mandritsara</option>
+        </select>
+
+        <select id="categoryFilter" onchange="renderListings()">
+          <option value="Toutes">Toutes catégories</option>
+          <option value="Carrosserie">Carrosserie</option>
+          <option value="Moteur">Moteur</option>
+          <option value="Roues">Roues</option>
+          <option value="Intérieur">Intérieur</option>
+          <option value="Autres">Autres</option>
+        </select>
+      </div>
+
+      <!-- Grille des annonces -->
+      <div id="listingsGrid" class="listings-grid"></div>
+
+      <!-- Comparatif pourquoi AutoBroc -->
+      <div class="info-box">
+        <h3>Pourquoi acheter sur AutoBroc plutôt que sur Facebook ?</h3>
+        <div class="comparison-grid">
+          <div class="comp-bad">
+            <h4>❌ Sur Facebook</h4>
+            <ul>
+              <li>Tu paies avant, risque d'arnaque</li>
+              <li>Pas de suivi</li>
+              <li>Tu cherches dans 100 groupes</li>
+              <li>Pas de garantie</li>
+            </ul>
+          </div>
+          <div class="comp-good">
+            <h4>✅ Sur AutoBroc</h4>
+            <ul>
+              <li>Argent bloqué jusqu'à réception</li>
+              <li>Suivi avec référence AB-2026-XXXX</li>
+              <li>Tout au même endroit + filtre par ville</li>
+              <li>Si pas reçu, remboursé</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- VUE 2 : SUIVI DES ACHATS (ACHETEUR) -->
+    <section id="view-commandes" class="hidden">
+      <h2>Mes commandes et réceptions</h2>
+      <p class="subtitle">Dès que vous recevez votre pièce, cliquez sur <strong>« J'ai reçu »</strong> pour débloquer le paiement au vendeur.</p>
+      <div id="ordersList" class="orders-list"></div>
+    </section>
+
+    <!-- VUE 3 : ESPACE ADMIN (CODE 2026) -->
+    <section id="view-admin" class="hidden">
+      <div class="admin-header">
+        <div>
+          <h2>🔐 Espace Admin — Propriétaire AutoBroc</h2>
+          <p class="subtitle">Vue confidentielle : gestion des annonces, suivi des séquestres MVola et commissions (invisibles pour les utilisateurs).</p>
+        </div>
+        <button class="btn btn-outline" onclick="switchTab('catalogue')">Quitter Admin</button>
+      </div>
+
+      <div class="stats-grid">
+        <div class="stat-card">
+          <span>Annonces en ligne</span>
+          <strong id="adminTotalListings">0</strong>
+        </div>
+        <div class="stat-card">
+          <span>Commandes totales</span>
+          <strong id="adminTotalOrders">0</strong>
+        </div>
+        <div class="stat-card">
+          <span>Fonds bloqués (Séquestre)</span>
+          <strong id="adminEscrowAmount">0 Ar</strong>
+        </div>
+        <div class="stat-card highlight">
+          <span>Vos commissions (5% privés)</span>
+          <strong id="adminCommissionAmount">0 Ar</strong>
+        </div>
+      </div>
+
+      <h3>Suivi des transactions & litiges</h3>
+      <div id="adminOrdersTable" class="admin-table-wrapper"></div>
+
+      <h3>Modération des annonces</h3>
+      <div id="adminListingsTable" class="admin-table-wrapper"></div>
+    </section>
+
+  </main>
+
+  <!-- MODALE 1 : DÉTAIL PIÈCE & PAIEMENT MVOLA -->
+  <div id="buyModal" class="modal hidden">
+    <div class="modal-content">
+      <button class="close-btn" onclick="closeModal('buyModal')">&times;</button>
+      <div id="buyModalBody"></div>
+    </div>
+  </div>
+
+  <!-- MODALE 2 : PUBLIER UNE ANNONCE (+ VENDRE) -->
+  <div id="sellModal" class="modal hidden">
+    <div class="modal-content">
+      <button class="close-btn" onclick="closeModal('sellModal')">&times;</button>
+      <h2>Publier une pièce gratuitement</h2>
+      <p class="subtitle">Publication gratuite. Vous touchez 100% du prix affiché dès réception par l'acheteur.</p>
+      <form id="sellForm" onsubmit="handleSellSubmit(event)">
+        <label>Nom de la pièce *</label>
+        <input type="text" id="sellTitle" required placeholder="Ex : Phare avant droit" />
+
+        <div class="form-row">
+          <div>
+            <label>Marque *</label>
+            <input type="text" id="sellBrand" required placeholder="Ex : Toyota" />
+          </div>
+          <div>
+            <label>Modèle *</label>
+            <input type="text" id="sellModel" required placeholder="Ex : Hilux" />
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div>
+            <label>Année</label>
+            <input type="text" id="sellYear" placeholder="Ex : 2015" />
+          </div>
+          <div>
+            <label>Catégorie *</label>
+            <select id="sellCategory">
+              <option value="Carrosserie">Carrosserie</option>
+              <option value="Moteur">Moteur</option>
+              <option value="Roues">Roues</option>
+              <option value="Intérieur">Intérieur</option>
+              <option value="Autres">Autres</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div>
+            <label>Prix en Ariary (Ar) *</label>
+            <input type="number" id="sellPrice" required min="5000" step="1000" placeholder="Ex : 250000" />
+          </div>
+          <div>
+            <label>Ville *</label>
+            <select id="sellCity">
+              <option value="Antananarivo">Antananarivo</option>
+              <option value="Mahajanga">Mahajanga</option>
+              <option value="Mandritsara">Mandritsara</option>
+            </select>
+          </div>
+        </div>
+
+        <label>URL d'une photo (optionnel)</label>
+        <input type="url" id="sellImage" placeholder="https://..." />
+
+        <label>Description & état de la pièce *</label>
+        <textarea id="sellDescription" rows="3" required placeholder="Précisez l'état, la compatibilité, si c'est d'origine..."></textarea>
+
+        <button type="submit" class="btn btn-primary btn-full">Publier mon annonce maintenant</button>
+      </form>
+    </div>
+  </div>
+
+  <footer class="footer">
+    <p><strong>AutoBroc</strong> — Antananarivo • Mahajanga • Mandritsara</p>
+    <p>Achetez et vendez vos pièces auto d'occasion à Madagascar en toute sécurité.</p>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+  </html>
+  
