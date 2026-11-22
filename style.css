@@ -39,13 +39,26 @@ body {
 }
 
 .header {
-  background: var(--card);
+  background:
+    linear-gradient(rgba(15, 23, 42, 0.78), rgba(15, 23, 42, 0.78)),
+    url("https://images.unsplash.com/photo-1486262715619-67b85e0b08d3?auto=format&fit=crop&w=1400&q=80") center / cover no-repeat;
   border-bottom: 1px solid var(--border);
-  padding: 14px 0;
+  padding: 20px 0;
   position: sticky;
   top: 0;
   z-index: 100;
+  color: #ffffff;
 }
+
+.header .logo p {
+  color: #e2e8f0;
+}
+
+.header .btn-outline {
+  background: rgba(255, 255, 255, 0.92);
+  border-color: transparent;
+}
+
 
 .header-content {
   display: flex;
